@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asteroids</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: #010137;
+            font-family: 'Arial', sans-serif;
+        }
+
+        canvas {
+            border: 2px solid #041952;
+            background: #020c18;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="gameCanvas" width="600" height="600"></canvas>
+
+    <script type="module">
+        // Import player and movement system
+        import { updatePlayer, handleShooting, getBulletSpawnInfo, drawPlayer, gun } from '../shared/player.ts';
+
+        // Get canvas and context
+        const canvas = document.querySelector("canvas");
+        const ctx = canvas.getContext('2d');
+
+        // Asteroids, hopefully
+        let asteroids = []; // Empty array to store asteroid objects
+
+        let reload = { value: 0 };
+        let asteroidSpawnTimer = 0; // Timer to control when new asteroids spawn
+
+        // Array to store all active bullets
+        let bullets = [];
+
+
+        function update() {
+            // Update player movement and rotation
+            updatePlayer(bullets, asteroids);
+            
+            // Handle shooting
+            if (handleShooting(reload)) {
+                // Get bullet spawn info from player module
+                const bulletInfo = getBulletSpawnInfo();
+                
+                // Create a new bullet object
+                bullets.push({
+                    x: bulletInfo.x,
+                    y: bulletInfo.y,
+                    velocityX: bulletInfo.velocityX,
+                    velocityY: bulletInfo.velocityY,
+                    size: 3, // Size of the bullet (circle radius)
+                });
+            }
+            
+            // Spawn new asteroids occasionally (not every frame!)
+            asteroidSpawnTimer++;
+            if (asteroidSpawnTimer >= 120) { // Spawn a new asteroid every 120 frames (~2 seconds at 60fps)
+                // Create a random asteroid
+                // Random angle for direction (0 to 2π)
+                const randomAngle = Math.random() * Math.PI * 2;
+                const randomSpeed = Math.random() * 2 + 1; // Speed between 1 and 3
+                
+                asteroids.push({
+                    x: Math.random() * canvas.width,  // Random X position (0 to canvas width)
+                    y: Math.random() * canvas.height, // Random Y position (0 to canvas height)
+                    velocityX: Math.cos(randomAngle) * randomSpeed, // X velocity based on random angle
+                    velocityY: Math.sin(randomAngle) * randomSpeed, // Y velocity based on random angle
+                    size: Math.floor(Math.random() * 20) + 10 // Random size (10 to 30)
+                });
+                asteroidSpawnTimer = 0; // Reset timer
+            }
+            
+            // Update all bullets - move them based on their velocity
+            for (let i = bullets.length - 1; i >= 0; i--) {
+                const bullet = bullets[i];
+                // Move the bullet by adding velocity to position
+                bullet.x += bullet.velocityX;
+                bullet.y += bullet.velocityY;
+
+                // Remove bullets that go off screen
+                if (bullet.x < 0 || bullet.x > canvas.width ||
+                    bullet.y < 0 || bullet.y > canvas.height) {
+                    bullets.splice(i, 1); // Remove bullet from array
+                }
+            }
+            // Update all asteroids - move them based on their velocity
+            for (let i = asteroids.length - 1; i >= 0; i--) {
+                const asteroid = asteroids[i];
+
+                // Move the asteroid by adding velocity to position
+                asteroid.x += asteroid.velocityX;
+                asteroid.y += asteroid.velocityY;
+
+                // Wrap asteroids around screen edges (teleport to opposite side)
+                if (asteroid.x < 0) {
+                    asteroid.x = canvas.width; // Wrap to right side
+                } else if (asteroid.x > canvas.width) {
+                    asteroid.x = 0; // Wrap to left side
+                }
+                
+                if (asteroid.y < 0) {
+                    asteroid.y = canvas.height; // Wrap to bottom
+                } else if (asteroid.y > canvas.height) {
+                    asteroid.y = 0; // Wrap to top
+                }
+            }
+        }
+
+        // Draw everything
+        function draw() {
+            //clear the canvas
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw player and gun
+            drawPlayer();
+
+            ctx.fillStyle = 'blue';
+            for (let i = 0; i < asteroids.length; i++) {
+                const asteroid = asteroids[i];
+                ctx.beginPath(); 
+                ctx.arc(asteroid.x, asteroid.y, asteroid.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            // Draw all bullets
+            ctx.fillStyle = 'white'; // Color of bullets
+            for (let i = 0; i < bullets.length; i++) {
+                const bullet = bullets[i];
+                ctx.beginPath(); // Start a new path for each bullet
+                // Draw bullet as a circle
+                ctx.arc(bullet.x, bullet.y, bullet.size, 0, Math.PI * 2);
+                ctx.fill(); // Fill the circle with white color
+            }
+            
+        }
+
+        // Main game loop
+        function gameLoop() {
+            update();
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Start the game
+        gameLoop();
+
+    </script>
+</body>
+
+</html>

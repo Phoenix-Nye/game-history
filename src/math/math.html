@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: #1a1a2e;
+            font-family: 'Arial', sans-serif;
+        }
+
+        canvas {
+            border: 2px solid #16213e;
+            background: #0f3460;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="gameCanvas" width="600" height="600"></canvas>
+
+    <script>
+        // Get canvas and context
+        const canvas = document.querySelector("canvas");
+        const ctx = canvas.getContext('2d');
+        ctx.translate(5,-5);
+        let squarePlot = 21;
+
+        let plotY = 0;
+
+        
+        let canvasDivided = canvas.width/squarePlot;
+        
+        let fontSizePx = half(canvasDivided);
+        let fontFamily = 'Arial';
+
+        // pure functions return values but have no side effects.
+        function double(x) { return x * 2; }
+        function half(x) { return x / 2; }
+        function quadruple(x) { return x * 4; }
+        function sine(x) { return Math.sin(x / 5) * 10; }
+        function cos(x) { return Math.cos(x / 5) * 10; }
+        function decuple(x) { return x * 10; }
+        
+        
+        {
+            let plotX = 0;
+            while (plotX < squarePlot) {
+                //numbers X line
+                ctx.fillStyle = 'white';
+                ctx.font = `${fontSizePx}px ${fontFamily}`;
+                ctx.textAlign = 'center';
+                ctx.fillText(plotX, plotX * canvasDivided, canvas.height);
+                //vertices along the x Axis
+                ctx.fillStyle = 'white';
+                ctx.fillRect(plotX * canvasDivided, canvas.height - half(canvasDivided), .1, -(canvas.height + canvasDivided));
+                plotX++
+            }
+        }
+        {
+            let plotY = 0;
+            while (plotY < squarePlot) {
+                //numbers y line
+                ctx.fillStyle = 'white';
+                ctx.font = `${fontSizePx}px ${fontFamily}`;
+                ctx.textAlign = 'center';
+                ctx.fillText(plotY, 0, canvas.height - plotY * canvasDivided);
+                //vertices along the y Axis
+                ctx.fillStyle = 'white';
+                ctx.fillRect(half(canvasDivided), canvas.height - plotY * canvasDivided, canvas.width + canvasDivided, .1);
+                plotY++
+            }
+        }
+        function fillSquare(x, y, width = 1, height = 1) {
+            ctx.fillStyle = 'white';
+            ctx.fillRect(x * canvasDivided, canvas.height - canvasDivided * y, width * canvasDivided, height * -canvasDivided);
+        }
+        // helper functions with side effects, return nothing.
+        function drawPoint(x, y, size = 5, color = 'red') {
+            ctx.fillStyle = color;
+            ctx.beginPath(); // Start a new path
+            ctx.arc(x * canvasDivided, canvas.height - y * canvasDivided, size, 0, double(Math.PI));
+            ctx.fill(); // Actually draw/fill the circle
+        }
+
+        // TERMINOLOGY
+        // PURE FUNCTIONS
+        // SEPARATION OF CONCERNS
+
+
+        let end = 1;
+        function graph(fn, color) {
+            let x = 0;
+            while(x <= end) {
+                drawPoint(x, fn(x), 3, color);
+                x++
+            }
+        }
+
+        function renderFrame() {
+            graph(half, 'blue');
+            graph(quadruple, 'green');
+            graph(sine,'pink');
+            graph(cos);
+            fillSquare();
+            end++;
+            requestAnimationFrame(renderFrame);
+        }
+        renderFrame();
+
+        
+        for (let i = 0; i <= double(Math.PI); i += 0.2)
+            drawPoint(decuple(Math.cos(i)), decuple(Math.sin(i)), 4, "black")    
+        
+        
+        
+        drawPoint();
+
+
+
+
+
+    </script>
+</body>
+
+</html>
